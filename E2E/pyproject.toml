@@ -1,7 +1,7 @@
 [project]
-name = "E2E"
+name = "e2e"
 version = "0.1.0"
-description = "E2E testing"
+description = "e2e testing"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [

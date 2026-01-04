@@ -1,4 +1,4 @@
-## E2E testing
+## e2e testing
 
 basically, use `pytest` for normally testings
 
@@ -15,7 +15,7 @@ if the project is suitable for BDD testing, use `behave` to do the BDD testings.
 Using `uv` (recommended):
 
 ```bash
-cd E2E
+cd e2e
 uv venv .venv
 uv sync
 uv run pytest -v --tb=short
@@ -27,7 +27,7 @@ run `pytest` inside it.
 Without `uv`, you can create a venv and install pytest manually:
 
 ```bash
-cd E2E
+cd e2e
 python -m venv .venv
 source .venv/bin/activate         # bash / zsh
 # source .venv/bin/activate.fish  # fish

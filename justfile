@@ -26,6 +26,16 @@ install-prek:
     prek uninstall
     prek install .
 
+# e2e env bootstrap (uv)
+[unix]
+init-e2e:
+    cd "e2e" && (uv venv .venv --allow-existing 2>/dev/null || uv venv .venv) && uv sync
+
+# e2e env bootstrap (uv)
+[windows]
+init-e2e:
+    Set-Location "e2e"; try { uv venv .venv --allow-existing } catch { uv venv .venv }; uv sync
+
 # test related things
 # if nextest exists, use nextest instead of cargo test
 [unix]
@@ -42,10 +52,18 @@ test *ARGS="--no-tests=pass":
 test:
     if (Get-Command cargo-nextest -ErrorAction SilentlyContinue) { cargo nextest run --workspace --all-features } else { cargo test --workspace --all-features }
 
-e2e:
-    cd E2E
-    
 
+# e2e tests (pytest)
+[unix]
+e2e:
+    cd "e2e" && uv run -- pytest -v --tb=short
+    # TODO: behave should be included
+
+# e2e tests (pytest)
+[windows]
+e2e:
+    Set-Location "e2e"; uv run -- pytest -v --tb=short
+    # TODO: behave should be included
 
 # build --workspcae default
 build *ARGS="--workspace":
@@ -65,3 +83,4 @@ alias pre-commit := prek
 alias lint := happy
 alias b := build
 alias t := test
+alias t2 := e2e

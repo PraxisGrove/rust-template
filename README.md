@@ -10,4 +10,4 @@ TODO
 
 unit tests and basically integration tests are should 
 
-E2E tests are should place at `E2E` dir which use `uv` + `python` to write the E2E tests.
+e2e tests are should place at `e2e` dir which use `uv` + `python` to write the e2e tests.

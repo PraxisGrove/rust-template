@@ -4,6 +4,15 @@ authors = ["unic <yuniqueunic@gmail.com>"]
 version = "0.1.0"
 edition = "2024"
 
+exclude = [
+    "e2e/**",
+    ".github/**",
+    ".vscode/**",
+    ".pytest_cache/**",
+    "target/**",
+]
+
+
 [dependencies]
 anyhow = "1"
 
@@ -20,3 +29,16 @@ lto = true
 codegen-units = 1
 panic = "abort"
 strip = "debuginfo"
+
+
+
+# only works with cargo-release
+[package.metadata.release]
+pre-release-replacements = [
+    # Update inline-table dependency snippets like:
+    # template = { version = "0.2", features = ["custom"] }
+    { file = "README.md", search = "template\\s*=\\s*\\{\\s*version\\s*=\\s*\"[0-9]+\\.[0-9]+(\\.[0-9]+)?(-[0-9A-Za-z.-]+)?\"", replace = "template = { version = \"{{version}}\"" },
+    # Update plain dependency snippets like:
+    # template = "0.2"
+    { file = "README.md", search = "template\\s*=\\s*\"[0-9]+\\.[0-9]+(\\.[0-9]+)?(-[0-9A-Za-z.-]+)?\"", replace = "template = \"{{version}}\"", min = 0 },
+]

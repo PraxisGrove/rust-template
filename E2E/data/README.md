@@ -1,4 +1,4 @@
-## E2E data
+## e2e data
 
-Dir for store data for E2E testing.
+Dir for store data for e2e testing.
 such as data inputs, data baseline, etc...
