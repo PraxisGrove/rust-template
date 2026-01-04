@@ -1,0 +1,22 @@
+[package]
+name = "template"
+authors = ["unic <yuniqueunic@gmail.com>"]
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1"
+
+
+
+[dev-dependencies]
+assert_fs= "1"
+rstest = "0.26"
+
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = "debuginfo"
