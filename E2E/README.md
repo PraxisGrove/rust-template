@@ -3,8 +3,9 @@
 basically, use `pytest` for normally testings
 
 if the project is suitable for BDD testing, use `behave` to do the BDD testings.
-    - firstly, build the bdd testing framework on `behave`.
-    - mapping the bdd language with bdd testing framework.
+
+- firstly, build the bdd testing framework on `behave`. - mapping the bdd
+  language with bdd testing framework.
 
 ## Requirements
 
@@ -38,4 +39,3 @@ pytest -v --tb=short
 ### data/baseline
 
 data/baseline are in the `../data` dir.
-
