@@ -8,18 +8,16 @@ default:
 # install all needed tools (Unix: bash, macOS, Linux)
 [unix]
 init:
-    rustup component add rust-analyzer clippy rustfmt
-    # prek 官方推荐：优先 cargo-binstall，否则 cargo install --locked
-    cargo binstall prek 2>/dev/null || cargo install --locked prek
-    # 可选：装上 nextest，这样 test 默认会走 nextest
-    cargo binstall cargo-nextest 2>/dev/null || cargo install --locked cargo-nextest
+    ./scripts/justfile/init.sh --component rust-analyzer clippy rustfmt
+    ./scripts/justfile/init.sh --install prek cargo-nextest
+    @echo "[0] init successfully"
 
 # install all needed tools (Windows: PowerShell)
 [windows]
 init:
-    rustup component add rust-analyzer clippy rustfmt
-    cargo binstall prek 2>$null; if ($LASTEXITCODE -ne 0) { cargo install --locked prek }
-    cargo binstall cargo-nextest 2>$null; if ($LASTEXITCODE -ne 0) { cargo install --locked cargo-nextest }
+    pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/justfile/init.ps1 --component rust-analyzer clippy rustfmt
+    pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/justfile/init.ps1 --install prek cargo-nextest
+    @echo "[0] init successfully"
 
 # install prek (which is the alternative tool of pre-commit)
 install-prek:
