@@ -1,15 +1,32 @@
 ## Scripts
 
-本目录包含用于构建、测试和部署的实用脚本。
+Utility scripts for project maintenance.
+
+### rust_size_gate.py
+
+Checks Rust source files for large files and large function bodies.
+
+```bash
+python3 scripts/rust_size_gate.py \
+  --root . \
+  --glob 'crates/**/*.rs' \
+  --warn-file-lines 600 \
+  --max-file-lines 800 \
+  --warn-fn-lines 80 \
+  --max-fn-lines 150
+```
+
+The function-size check is approximate. It is intended to catch oversized
+functions early, not to replace code review.
 
 ### update-readme-version.sh
 
-更新 README 文件中版本号的脚本。
+Updates version snippets in README files.
 
 ```bash
 ./scripts/update-readme-version.sh <new-version>
 ```
 
-- 自动更新所有 README 中的版本号
-- 保持文档版本一致性
-- 依赖 `python3`（可通过 `PYTHON_BIN` 环境变量覆盖）
+- Updates README version references.
+- Keeps documentation snippets aligned with releases.
+- Requires `python3`; override with `PYTHON_BIN` if needed.

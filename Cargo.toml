@@ -1,39 +1,49 @@
-[package]
-name = "template"
-authors = ["unic <yuniqueunic@gmail.com>"]
-version = "0.1.0"
-edition = "2024"
-
-exclude = [
-    "e2e/**",
-    ".github/**",
-    ".vscode/**",
-    ".pytest_cache/**",
-    "target/**",
+[workspace]
+members = [
+    "crates/app",
+    "crates/cli",
+    "crates/domain",
+    "crates/infra",
 ]
+resolver = "2"
 
+[workspace.package]
+authors = ["unic <yuniqueunic@gmail.com>"]
+edition = "2024"
+license = "MIT OR Apache-2.0"
+version = "0.1.0"
 
-[dependencies]
+[workspace.dependencies]
 anyhow = "1"
-
-
-
-[dev-dependencies]
-assert_fs= "1"
+assert_cmd = "2"
+predicates = "3"
 rstest = "0.26"
+template-app = { path = "crates/app" }
+template-domain = { path = "crates/domain" }
+template-infra = { path = "crates/infra" }
 
+[workspace.lints]
+rust = {}
+
+[workspace.lints.clippy]
+expect_used = "deny"
+manual_ok_or = "deny"
+needless_collect = "deny"
+redundant_clone = "deny"
+uninlined_format_args = "deny"
+unwrap_used = "deny"
+
+[profile.dev]
+debug = "limited"
 
 [profile.release]
-opt-level = "z"
-lto = true
-codegen-units = 1
-panic = "abort"
-strip = "debuginfo"
-
-
+codegen-units = 4
+debug = "line-tables-only"
+lto = "thin"
+strip = false
 
 # only works with cargo-release
-[package.metadata.release]
+[workspace.metadata.release]
 pre-release-replacements = [
     # Update inline-table dependency snippets like:
     # template = { version = "0.2", features = ["custom"] }
