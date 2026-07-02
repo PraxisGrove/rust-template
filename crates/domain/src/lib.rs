@@ -1,3 +1,5 @@
+#![cfg_attr(test, allow(clippy::panic))]
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Greeting {
     recipient: String,

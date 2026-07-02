@@ -24,7 +24,7 @@ clippy:
     cargo clippy --workspace --all-targets -- -D warnings
 
 size:
-    python3 scripts/rust_size_gate.py --root . --glob 'crates/**/*.rs' --warn-file-lines 600 --max-file-lines 800 --warn-fn-lines 80 --max-fn-lines 150
+    cargo run -p xtask -- size
 
 build:
     cargo build --workspace --all-targets --release
@@ -35,13 +35,4 @@ ci:
     cargo test --workspace --all-targets
     cargo clippy --workspace --all-targets -- -D warnings
     cargo build --workspace --all-targets --release
-    python3 scripts/rust_size_gate.py --root . --glob 'crates/**/*.rs' --warn-file-lines 600 --max-file-lines 800 --warn-fn-lines 80 --max-fn-lines 150
-
-# Optional e2e helpers. Requires uv and the E2E project dependencies.
-[unix]
-e2e:
-    cd E2E && uv run -- pytest -v --tb=short
-
-[windows]
-e2e:
-    Set-Location E2E; uv run -- pytest -v --tb=short
+    cargo run -p xtask -- size

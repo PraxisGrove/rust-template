@@ -1,51 +1,42 @@
-# 可复现与稳定性（determinism & stability）
+# Determinism And Stability
 
-## 目标
+## Goals
 
-- 测试在 CI 和本地机器上结果一致
-- 失败可复现、易定位
+- Tests should behave the same in CI and on local machines.
+- Failures should be reproducible and easy to diagnose.
 
-## 1) 随机性控制
+## Randomness
 
-### property-based（proptest）
+- Prefer invariant-based assertions over exact random sequences.
+- Seed RNGs when random behavior must be tested.
+- After property-test shrinking, copy important minimized cases into fixed
+  regression tests.
+- When testing random selection logic, reduce the candidate set to one valid
+  option whenever possible.
 
-- 以“不变量”为核心，不要依赖某个具体随机序列
-- 失败后将 shrink 的样本复制成固定 `#[test]` 回归用例
+## Time
 
-### 随机选择逻辑（例如权重随机）
+- Avoid assertions based on `SystemTime::now()` or similar wall-clock values.
+- Prefer injected clocks or explicit timestamps.
+- If exact time does not matter, assert presence and type rather than a specific
+  value.
 
-如果生产逻辑里使用随机：
+## External Dependencies
 
-- 单测尽量让候选集合“只剩一个可选项”以避免概率性失败（或固定 RNG 种子）
-- 若必须测试“随机行为本身”，应抽象 RNG 并允许注入种子（低自由度/高可靠）
+- Use mocks or fakes for DB, Redis, HTTP, filesystem, and process boundaries by
+  default.
+- Use real services only for explicit e2e suites with controlled setup and
+  cleanup.
 
-## 2) 时间控制
+## Flakiness Checklist
 
-- 避免在测试里依赖真实时间（例如 `SystemTime::now()` /
-  `Utc::now()`）作为断言依据
-- 需要时间语义时建议：
-  - 注入 clock trait（可 mock）
-  - 或只断言“时间字段存在/类型正确”，不对具体值做断言
+- No sleeps for synchronization.
+- No real network in default tests.
+- No hidden global mutable state.
+- Property-test case counts are practical.
+- Temporary files use isolated temporary directories.
 
-## 3) 外部依赖隔离
+## Tooling Noise
 
-- DB/Redis/HTTP：默认用 mock/fake 代替
-- 只有在必须的 e2e 场景才允许真实依赖，并要有可控环境（例如容器化/本地编排脚本）
-
-## 4) 避免 flakiness 的 checklist
-
-- 不使用 `sleep` 做同步
-- 不使用真实网络
-- 不依赖全局共享状态（全局静态、单例）
-- proptest 的 cases 不要过大
-
-## 5) IDE/工具链常见干扰
-
-- IDE 的诊断结果与真实构建结果可能不一致（例如缓存、索引、proc-macro
-  扩展失败）。
-- 以 `cargo test` / `cargo check` 的真实结果为准。
-- 推荐做法：
-  - 锁定 Rust 工具链版本（例如使用 `rust-toolchain.toml`）以保证团队一致性。
-  - 在 CI 中固定 `cargo` 版本与依赖解析策略（必要时使用 `Cargo.lock`）。
-  - 遇到“只在 IDE 出现、CLI 不出现”的问题时，优先重启
-    IDE/语言服务器，再考虑清理构建缓存。
+IDE diagnostics can differ from real builds because of caching or proc-macro
+state. Treat `cargo test` and `cargo check` as the source of truth.

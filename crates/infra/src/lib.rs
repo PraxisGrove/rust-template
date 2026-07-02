@@ -1,3 +1,5 @@
+#![cfg_attr(test, allow(clippy::panic))]
+
 use template_app::RecipientProvider;
 
 #[derive(Debug, Clone, PartialEq, Eq)]

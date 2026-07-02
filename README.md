@@ -16,7 +16,7 @@ crates/
   app/     # use cases and ports
   infra/   # concrete implementations for app ports
   cli/     # binary entrypoint and dependency wiring
-E2E/       # optional end-to-end tests
+  xtask/   # Rust-only project maintenance tasks
 ```
 
 The intended dependency direction is:
@@ -41,9 +41,9 @@ cargo clippy
 cargo build
 ```
 
-Extra tools such as `just`, `uv`, `prek`, `cargo-nextest`, `cargo-deny`, or
-release helpers are optional. They can improve local workflow, but this template
-must stay usable without installing them.
+Extra tools such as `just`, `prek`, `cargo-nextest`, `cargo-deny`, or release
+helpers are optional. They can improve local workflow, but this template must
+stay usable without installing them.
 
 ## Development
 
@@ -55,7 +55,7 @@ cargo check --workspace --all-targets
 cargo test --workspace --all-targets
 cargo clippy --workspace --all-targets -- -D warnings
 cargo build --workspace --all-targets --release
-python3 scripts/rust_size_gate.py --root . --glob 'crates/**/*.rs' --warn-file-lines 600 --max-file-lines 800 --warn-fn-lines 80 --max-fn-lines 150
+cargo run -p xtask -- size
 ```
 
 When you want Cargo to format the code:
@@ -94,11 +94,20 @@ engineering guidance lives under `docs/`:
 
 - `docs/architecture.md`
 - `docs/development.md`
+- `docs/technology-stack.md`
+- `docs/error-handling.md`
+- `docs/fail-fast.md`
+- `docs/dependency-policy.md`
+- `docs/observability.md`
 - `docs/testing.md`
 - `docs/review.md`
 
 These files are part of the template contract. Keep them current when changing
 crate layout, required gates, or review policy.
+
+Production code should fail early with explicit errors and validated types, not
+late with assertions or panics. Tests may still use assertions to verify
+behavior.
 
 ## Optional `just` Shortcuts
 
@@ -124,6 +133,5 @@ Keep fast Rust tests in the workspace:
 cargo test --workspace --all-targets
 ```
 
-End-to-end tests live under `E2E/`. They are optional for the base Rust workflow
-and may use Python tooling such as `uv`, `pytest`, or `behave` when the project
-needs them.
+Add end-to-end tests only when the project needs them. Keep the base template
+Rust-only; project-specific e2e tooling should be introduced deliberately.

@@ -1,57 +1,32 @@
-# proptest 最佳实践（property-based testing）
+# proptest
 
-## 适用范围
+Use property-based tests when the input space is large and examples are likely
+to miss edge cases.
 
-当你面对以下情况时优先考虑 proptest：
+## Good Uses
 
-- 输入组合爆炸（例如多阶段处理链、多策略 fallback、多种评分/权重组合）。
-- 需要系统性覆盖边界（空、极值、重复、随机种子等）。
-- 你能定义清晰的不变量（invariants）。
+- Parsers and formatters.
+- Normalization logic.
+- Ordering and idempotency rules.
+- Algorithms with many combinations.
 
-## 先定义不变量（Invariants）
+## Guidelines
 
-示例（通用）：
+- State the invariant in the test name or comments.
+- Generate only valid inputs unless invalid input is the point.
+- Keep case counts practical for CI.
+- Convert important minimized failures into fixed regression tests.
 
-- **范围约束不变量**：输出值永远在合法区间内（例如 0..=100）。
-- **幂等性不变量**：对同一个值重复应用函数，结果不再变化。
-- **单调性/排序不变量**：例如排序结果永远是非降序。
-- **回退顺序不变量**：当首选策略不可用时，应按预定义顺序尝试后备策略。
-- **不崩溃不变量**：任意“合法输入”都不应 panic。
+Example invariant:
 
-## Strategy 设计建议
+```rust
+proptest! {
+    #[test]
+    fn normalized_values_are_idempotent(input in any_valid_input()) {
+        let once = normalize(&input);
+        let twice = normalize(&once);
 
-- 先生成最小字段，再逐步扩展。
-- 为复杂类型写自定义 strategy（避免生成大量无效样本）。
-
-常用组合：
-
-- `any::<u64>()` / `any::<i64>()` / `any::<String>()`
-- `prop::collection::vec(...)` 生成 list
-- `prop_oneof![]` 在多个场景间选择
-- `prop_filter` 过滤非法值（慎用，过度过滤会导致生成效率下降）
-
-最小示例见：
-
-- `references/examples.md`（proptest 示例）
-
-## 控制运行成本（CI 友好）
-
-- 保持每个 proptest 的 `cases` 数量适中。
-- 如果发现 CI 慢，可以拆成：
-  - 关键不变量用 proptest
-  - 其他场景用普通单测
-
-## 与 mockall 的组合
-
-- proptest 负责生成输入（如 ids、参数组合、状态组合）
-- mockall 负责断言依赖调用与行为
-
-注意：
-
-- 不要在 proptest 中做太复杂的 mock 期望（否则调试困难）
-
-## 复现失败
-
-当 proptest 报错时会给出失败样本（shrink 后）。
-
-- 先把失败样本拷贝成一个普通 `#[test]` 固定用例，便于定位。
+        prop_assert_eq!(once, twice);
+    }
+}
+```

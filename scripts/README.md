@@ -1,32 +1,13 @@
 ## Scripts
 
-Utility scripts for project maintenance.
+This template keeps required maintenance tasks in Rust under `crates/xtask`.
 
-### rust_size_gate.py
-
-Checks Rust source files for large files and large function bodies.
+Use:
 
 ```bash
-python3 scripts/rust_size_gate.py \
-  --root . \
-  --glob 'crates/**/*.rs' \
-  --warn-file-lines 600 \
-  --max-file-lines 800 \
-  --warn-fn-lines 80 \
-  --max-fn-lines 150
+cargo run -p xtask -- size
+cargo run -p xtask -- update-readme-version <new-version>
 ```
 
-The function-size check is approximate. It is intended to catch oversized
-functions early, not to replace code review.
-
-### update-readme-version.sh
-
-Updates version snippets in README files.
-
-```bash
-./scripts/update-readme-version.sh <new-version>
-```
-
-- Updates README version references.
-- Keeps documentation snippets aligned with releases.
-- Requires `python3`; override with `PYTHON_BIN` if needed.
+Shell scripts under this directory are legacy helpers and should not be part of
+the required template workflow.

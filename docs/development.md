@@ -13,7 +13,7 @@ cargo check --workspace --all-targets
 cargo test --workspace --all-targets
 cargo clippy --workspace --all-targets -- -D warnings
 cargo build --workspace --all-targets --release
-python3 scripts/rust_size_gate.py --root . --glob 'crates/**/*.rs' --warn-file-lines 600 --max-file-lines 800 --warn-fn-lines 80 --max-fn-lines 150
+cargo run -p xtask -- size
 ```
 
 Use `cargo fmt --all` when you want to apply formatting.
@@ -29,8 +29,7 @@ just clippy
 just size
 ```
 
-Do not document `just` as a required setup step. CI should use Cargo and Python
-directly.
+Do not document `just` as a required setup step. CI should use Cargo directly.
 
 ## Dependency Changes
 

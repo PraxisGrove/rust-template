@@ -42,4 +42,4 @@ jobs:
         run: cargo build --workspace --all-targets --release
 
       - name: Size gate
-        run: python3 scripts/rust_size_gate.py --root . --glob 'crates/**/*.rs' --warn-file-lines 600 --max-file-lines 800 --warn-fn-lines 80 --max-fn-lines 150
+        run: cargo run -p xtask -- size

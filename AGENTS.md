@@ -15,11 +15,11 @@ cargo check --workspace --all-targets
 cargo test --workspace --all-targets
 cargo clippy --workspace --all-targets -- -D warnings
 cargo build --workspace --all-targets --release
-python3 scripts/rust_size_gate.py --root . --glob 'crates/**/*.rs' --warn-file-lines 600 --max-file-lines 800 --warn-fn-lines 80 --max-fn-lines 150
+cargo run -p xtask -- size
 ```
 
-`just`, `uv`, `prek`, `cargo-nextest`, and release helpers are optional
-conveniences. Do not make them required for the base development path.
+`just`, `prek`, `cargo-nextest`, and release helpers are optional conveniences.
+Do not make them required for the base development path.
 
 ## Architecture Rules
 
@@ -39,6 +39,11 @@ conveniences. Do not make them required for the base development path.
 - Use inline format arguments when possible: `format!("{name}")`.
 - Avoid boolean or ambiguous `Option` positional parameters when they make
   callsites hard to read. Prefer enums, named constructors, or small value types.
+- Production code must not use `unwrap`, `expect`, `panic`, `todo`, or
+  `unimplemented`; return explicit errors or reject invalid state at
+  construction/parsing boundaries.
+- Do not use production assertions as validation. Tests may use assertions to
+  verify behavior.
 - Prefer exhaustive `match` statements over wildcard arms when the domain is
   closed and meaningful.
 - Newly added traits must include doc comments explaining their role and what
@@ -72,3 +77,13 @@ conveniences. Do not make them required for the base development path.
 - Public API changes must explain expected callers and migration impact.
 - Dependency changes must explain why the dependency is needed.
 - Generated code and handwritten code should be separated clearly.
+
+## Technology Choices
+
+- Keep the base template dependency-light.
+- Prefer `thiserror` for library errors and `anyhow` for binary/xtask boundary
+  errors.
+- Prefer `tracing` for observability once runtime diagnostics are needed.
+- Prefer `tokio` for async Rust and `axum` for new HTTP services when a project
+  actually needs a web framework.
+- Required template automation belongs in Rust under `crates/xtask`.

@@ -4,6 +4,7 @@ members = [
     "crates/cli",
     "crates/domain",
     "crates/infra",
+    "crates/xtask",
 ]
 resolver = "2"
 
@@ -27,6 +28,10 @@ rust = {}
 
 [workspace.lints.clippy]
 expect_used = "deny"
+panic = "deny"
+panic_in_result_fn = "deny"
+todo = "deny"
+unimplemented = "deny"
 manual_ok_or = "deny"
 needless_collect = "deny"
 redundant_clone = "deny"
