@@ -3,7 +3,7 @@ use std::pin::Pin;
 
 use sqlx::PgPool;
 use sqlx::postgres::PgPoolOptions;
-use {{crate_name}}_app::{ReadinessError, ReadinessProbe};
+use {{crate_name}}_app::{ReadinessError, ReadinessOutcome, ReadinessProbe};
 
 #[derive(Debug, Clone)]
 pub struct PostgresReadinessProbe {
@@ -28,14 +28,14 @@ impl PostgresReadinessProbe {
 impl ReadinessProbe for PostgresReadinessProbe {
     fn check<'a>(
         &'a self,
-    ) -> Pin<Box<dyn Future<Output = Result<(), ReadinessError>> + Send + 'a>> {
+    ) -> Pin<Box<dyn Future<Output = Result<ReadinessOutcome, ReadinessError>> + Send + 'a>> {
         Box::pin(async move {
             sqlx::query("SELECT 1")
                 .execute(&self.pool)
                 .await
                 .map_err(|err| ReadinessError::new(err.to_string()))?;
 
-            Ok(())
+            Ok(ReadinessOutcome::ready("dependencies are reachable"))
         })
     }
 }

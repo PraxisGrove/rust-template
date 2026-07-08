@@ -9,7 +9,7 @@ the framework and dependencies required for that application type.
 | Profile | Use when | Stack |
 |---|---|---|
 | `template/base` | Starting a general Rust workspace, library, CLI, or unknown project type. | Cargo workspace, `domain/app/infra/cli/xtask`, nextest, deny, size gate. |
-| `template/service` | Starting a backend HTTP service. | Base rules plus `tokio`, `axum`, `sqlx`, PostgreSQL readiness checks, and `tracing`. |
+| `template/service` | Starting a backend HTTP service. | Base rules plus `tokio`, `axum`, `sqlx`, PostgreSQL readiness checks, `tracing`, and optional OpenTelemetry traces. |
 
 ## Commands
 
@@ -37,10 +37,19 @@ Verify one profile:
 cargo run -p xtask -- verify-profiles --profile template/service
 ```
 
+For production projects, generate from a released Git tag instead of an
+unversioned branch:
+
+```bash
+cargo generate --git <repo> --tag v0.1.0 template/service --name my-service
+```
+
 ## Policy
 
 - Add shared engineering rules to root docs and mirror them into profiles when
   they affect generated projects.
+- Use repository Git tags as template versions. Do not add independent profile
+  version files unless profile release cadence actually diverges.
 - Add framework-specific rules only to the owning profile.
 - Keep generated projects able to pass their documented gate immediately after
   generation.

@@ -19,7 +19,7 @@ the project needs them, but keep the verification toolchain strong by default.
 | Serialization | `serde`, `serde_json`, `toml` |
 | Library errors | `thiserror` |
 | Binary/xtask errors | `anyhow` |
-| Observability | `tracing`, `tracing-subscriber` |
+| Observability | `tracing`, `tracing-subscriber`, optional OpenTelemetry traces |
 | Async runtime | `tokio` |
 | HTTP client | `reqwest` |
 | HTTP server | `axum` |

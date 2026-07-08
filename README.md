@@ -75,6 +75,12 @@ cargo generate --path . template/base --name my-project
 cargo generate --path . template/service --name my-service
 ```
 
+For production projects, pin a released template tag:
+
+```bash
+cargo generate --git https://github.com/PraxisGrove/rust-template --tag v0.1.0 template/service --name my-service
+```
+
 The generated project rewrites package names, Rust crate imports, binary names,
 and README content from the selected project name. For example, `my-project`
 generates crates named `my-project-domain`, `my-project-app`,
@@ -84,7 +90,7 @@ Profiles:
 
 - `template/base`: general mature Rust workspace.
 - `template/service`: backend service with `tokio`, `axum`, `sqlx`,
-  PostgreSQL readiness checks, and `tracing`.
+  PostgreSQL readiness checks, `tracing`, and optional OpenTelemetry traces.
 
 ## Development
 

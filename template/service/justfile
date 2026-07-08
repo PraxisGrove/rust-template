@@ -26,6 +26,12 @@ test-doc:
 deny:
     cargo deny check
 
+migrate:
+    sqlx migrate run
+
+migrate-info:
+    sqlx migrate info
+
 clippy:
     cargo clippy --workspace --all-targets -- -D warnings
 

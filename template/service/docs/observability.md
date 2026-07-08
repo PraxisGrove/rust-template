@@ -7,6 +7,8 @@ start with print-heavy production code.
 
 - `tracing` for spans and events.
 - `tracing-subscriber` for formatting and filtering.
+- Optional OpenTelemetry traces through OTLP when
+  `OTEL_EXPORTER_OTLP_ENDPOINT` is set.
 - `thiserror`/`anyhow` for errors with context.
 
 ## Guidelines
@@ -15,6 +17,8 @@ start with print-heavy production code.
 - Prefer structured fields over formatted strings for machine-readable data.
 - Avoid logging secrets, tokens, credentials, or full user-provided payloads.
 - Add context where an error crosses a boundary.
+- Fail startup when OpenTelemetry is explicitly enabled but exporter
+  initialization fails.
 - Keep domain logic independent from logging frameworks unless observability is
   part of the domain contract.
 

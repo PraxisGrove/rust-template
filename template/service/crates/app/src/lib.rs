@@ -11,8 +11,26 @@ use {{crate_name}}_domain::{HealthReport, HealthStatus};
 /// Implementations should perform a bounded, side-effect-free readiness check
 /// against infrastructure such as a database, queue, or cache.
 pub trait ReadinessProbe: Send + Sync {
-    fn check<'a>(&'a self)
-    -> Pin<Box<dyn Future<Output = Result<(), ReadinessError>> + Send + 'a>>;
+    fn check<'a>(
+        &'a self,
+    ) -> Pin<Box<dyn Future<Output = Result<ReadinessOutcome, ReadinessError>> + Send + 'a>>;
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ReadinessOutcome {
+    detail: String,
+}
+
+impl ReadinessOutcome {
+    pub fn ready(detail: impl Into<String>) -> Self {
+        Self {
+            detail: detail.into(),
+        }
+    }
+
+    pub fn detail(&self) -> &str {
+        &self.detail
+    }
 }
 
 #[derive(Debug, Error)]
@@ -51,10 +69,10 @@ impl HealthService {
 
     pub async fn readiness(&self, probe: &dyn ReadinessProbe) -> HealthReport {
         match probe.check().await {
-            Ok(()) => HealthReport::new(
+            Ok(outcome) => HealthReport::new(
                 &self.service_name,
                 HealthStatus::Ready,
-                "dependencies are reachable",
+                outcome.detail().to_owned(),
             ),
             Err(err) => HealthReport::new(
                 &self.service_name,
@@ -74,8 +92,9 @@ mod tests {
     impl ReadinessProbe for PassingProbe {
         fn check<'a>(
             &'a self,
-        ) -> Pin<Box<dyn Future<Output = Result<(), ReadinessError>> + Send + 'a>> {
-            Box::pin(async { Ok(()) })
+        ) -> Pin<Box<dyn Future<Output = Result<ReadinessOutcome, ReadinessError>> + Send + 'a>>
+        {
+            Box::pin(async { Ok(ReadinessOutcome::ready("dependencies are reachable")) })
         }
     }
 
@@ -84,7 +103,8 @@ mod tests {
     impl ReadinessProbe for FailingProbe {
         fn check<'a>(
             &'a self,
-        ) -> Pin<Box<dyn Future<Output = Result<(), ReadinessError>> + Send + 'a>> {
+        ) -> Pin<Box<dyn Future<Output = Result<ReadinessOutcome, ReadinessError>> + Send + 'a>>
+        {
             Box::pin(async { Err(ReadinessError::new("database unavailable")) })
         }
     }
@@ -106,6 +126,7 @@ mod tests {
         let report = service.readiness(&PassingProbe).await;
 
         assert_eq!(HealthStatus::Ready, report.status());
+        assert_eq!("dependencies are reachable", report.detail());
     }
 
     #[tokio::test]

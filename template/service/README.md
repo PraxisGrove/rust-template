@@ -3,8 +3,8 @@
 {{project_description}}
 
 This is a Rust backend service generated from the service profile. It uses
-`tokio`, `axum`, `sqlx`, PostgreSQL, and `tracing` on top of the shared mature
-Rust workspace gate.
+`tokio`, `axum`, `sqlx`, PostgreSQL readiness checks, `tracing`, and optional
+OpenTelemetry traces on top of the shared mature Rust workspace gate.
 
 ## Structure
 
@@ -26,15 +26,28 @@ cli -> infra -> app
 
 ## Run
 
-Set a PostgreSQL connection string and start the service:
+Start the service:
+
+```bash
+cargo run -p {{project-name}}-cli
+```
+
+The default bind address is `127.0.0.1:3000`. Override it with
+`APP_ADDR=0.0.0.0:3000`.
+
+Set `DATABASE_URL` to enable PostgreSQL readiness checks:
 
 ```bash
 DATABASE_URL=postgres://postgres:postgres@localhost:5432/{{project-name}} \
 cargo run -p {{project-name}}-cli
 ```
 
-The default bind address is `127.0.0.1:3000`. Override it with
-`BIND_ADDRESS=0.0.0.0:3000`.
+When `DATABASE_URL` is empty or missing, `/health/ready` returns ready with a
+`database readiness check skipped` detail so the generated service runs locally
+without external infrastructure.
+
+Set `OTEL_EXPORTER_OTLP_ENDPOINT` to enable OTLP trace export. `OTEL_SERVICE_NAME`
+overrides the default service name.
 
 Health endpoints:
 
@@ -59,3 +72,14 @@ cargo run -p xtask -- size
 ```
 
 Use `cargo fmt --all` to apply formatting.
+
+## Database Migrations
+
+SQL migrations live in `migrations/`. This profile provides the directory and
+`just` shortcuts, but does not define application tables for you:
+
+```bash
+sqlx migrate add create_example
+sqlx migrate run
+sqlx migrate info
+```
