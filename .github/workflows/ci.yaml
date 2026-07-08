@@ -26,6 +26,21 @@ jobs:
       - name: Setup Rust cache
         uses: Swatinem/rust-cache@v2
 
+      - name: Detect profile-impacting changes
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            profiles:
+              - '.github/workflows/ci.yaml'
+              - '.config/nextest.toml'
+              - 'Cargo.toml'
+              - 'Cargo.lock'
+              - 'crates/xtask/**'
+              - 'deny.toml'
+              - 'docs/project-profiles.md'
+              - 'template/**'
+
       - name: Install cargo-nextest
         uses: taiki-e/install-action@nextest
 
@@ -56,4 +71,5 @@ jobs:
         run: cargo run -p xtask -- size
 
       - name: Profile gate
+        if: steps.changes.outputs.profiles == 'true'
         run: cargo run -p xtask -- verify-profiles
