@@ -17,7 +17,6 @@ cargo clippy --workspace --all-targets -- -D warnings
 cargo deny check
 cargo build --workspace --all-targets --release
 cargo run -p xtask -- size
-cargo run -p xtask -- verify-profiles
 ```
 
 Use `cargo fmt --all` when you want to apply formatting.
@@ -33,7 +32,6 @@ just test-doc
 just clippy
 just deny
 just size
-just verify-profiles
 ```
 
 Do not document `just` as a required setup step. CI should use Cargo directly.

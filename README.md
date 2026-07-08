@@ -48,49 +48,19 @@ Extra tools such as `just`, `prek`, or release helpers are optional. They can
 improve local workflow, but CI and handoff verification should use the required
 gate below.
 
-## Generate A Project
+## Template Scope
 
-Install `cargo-generate`:
+This repository is the template. It does not maintain a separate `template/`
+copy of itself.
 
-```bash
-cargo install cargo-generate
-```
+The current base is a dependency-light Rust workspace. When a project needs a
+specific application shape, evolve this workspace directly toward one of the
+documented application types:
 
-Generate a base Rust workspace:
-
-```bash
-cargo generate --git https://github.com/PraxisGrove/rust-template template/base --name my-project
-```
-
-Generate a backend service workspace:
-
-```bash
-cargo generate --git https://github.com/PraxisGrove/rust-template template/service --name my-service
-```
-
-For local template development:
-
-```bash
-cargo generate --path . template/base --name my-project
-cargo generate --path . template/service --name my-service
-```
-
-For production projects, pin a released template tag:
-
-```bash
-cargo generate --git https://github.com/PraxisGrove/rust-template --tag v0.1.0 template/service --name my-service
-```
-
-The generated project rewrites package names, Rust crate imports, binary names,
-and README content from the selected project name. For example, `my-project`
-generates crates named `my-project-domain`, `my-project-app`,
-`my-project-infra`, and `my-project-cli`.
-
-Profiles:
-
-- `template/base`: general mature Rust workspace.
-- `template/service`: backend service with `tokio`, `axum`, `sqlx`,
-  PostgreSQL readiness checks, `tracing`, and optional OpenTelemetry traces.
+- server plus full-stack frontend
+- server plus desktop client
+- desktop-only app
+- server-only service
 
 ## Development
 
@@ -105,7 +75,6 @@ cargo clippy --workspace --all-targets -- -D warnings
 cargo deny check
 cargo build --workspace --all-targets --release
 cargo run -p xtask -- size
-cargo run -p xtask -- verify-profiles
 ```
 
 When you want Cargo to format the code:
@@ -151,6 +120,7 @@ engineering guidance lives under `docs/`:
 - `docs/observability.md`
 - `docs/testing.md`
 - `docs/review.md`
+- `docs/application-types.md`
 
 These files are part of the template contract. Keep them current when changing
 crate layout, required gates, or review policy.
@@ -171,7 +141,6 @@ just test-doc
 just clippy
 just deny
 just size
-just verify-profiles
 just fmt-fix
 ```
 

@@ -18,7 +18,6 @@ cargo clippy --workspace --all-targets -- -D warnings
 cargo deny check
 cargo build --workspace --all-targets --release
 cargo run -p xtask -- size
-cargo run -p xtask -- verify-profiles
 ```
 
 `cargo-nextest` and `cargo-deny` are required for the mature-project gate.

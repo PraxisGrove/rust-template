@@ -32,9 +32,6 @@ clippy:
 size:
     cargo run -p xtask -- size
 
-verify-profiles:
-    cargo run -p xtask -- verify-profiles
-
 build:
     cargo build --workspace --all-targets --release
 
@@ -47,4 +44,3 @@ ci:
     cargo deny check
     cargo build --workspace --all-targets --release
     cargo run -p xtask -- size
-    cargo run -p xtask -- verify-profiles

@@ -3,9 +3,9 @@
 Project guidance for humans and coding agents.
 
 - `architecture.md`: crate boundaries and dependency direction.
-- `development.md`: required Cargo, nextest, deny, size, and profile gates.
+- `development.md`: required Cargo, nextest, deny, and size gates.
 - `technology-stack.md`: recommended Rust crates and framework choices.
-- `project-profiles.md`: cargo-generate profiles and when to use each one.
+- `application-types.md`: supported project directions and when to choose them.
 - `error-handling.md`: structured error strategy.
 - `fail-fast.md`: early validation without production assertions.
 - `dependency-policy.md`: dependency selection and review rules.
