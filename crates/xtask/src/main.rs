@@ -2,12 +2,13 @@ use std::env;
 use std::error::Error;
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::ExitCode;
+use std::process::{Command, ExitCode};
 
 const DEFAULT_WARN_FILE_LINES: usize = 600;
 const DEFAULT_MAX_FILE_LINES: usize = 800;
 const DEFAULT_WARN_FN_LINES: usize = 80;
 const DEFAULT_MAX_FN_LINES: usize = 150;
+const README_DEPENDENCY_NAME: &str = "template";
 
 fn main() -> ExitCode {
     match run(env::args().skip(1).collect()) {
@@ -27,6 +28,7 @@ fn run(args: Vec<String>) -> Result<(), Box<dyn Error>> {
 
     match command {
         "size" => run_size_gate(SizeConfig::from_args(&args[1..])?),
+        "verify-profiles" => verify_profiles(ProfileVerifyConfig::from_args(&args[1..])?),
         "update-readme-version" => update_readme_version(&args[1..]),
         "help" | "-h" | "--help" => {
             print_help();
@@ -41,7 +43,171 @@ fn print_help() {
     println!(
         "  size [--root <dir>] [--glob <glob>] [--warn-file-lines <n>] [--max-file-lines <n>] [--warn-fn-lines <n>] [--max-fn-lines <n>]"
     );
+    println!("  verify-profiles [--profile <path>] [--keep]");
     println!("  update-readme-version <version>");
+}
+
+#[derive(Debug, Clone)]
+struct ProfileVerifyConfig {
+    profiles: Vec<String>,
+    keep_generated: bool,
+}
+
+impl Default for ProfileVerifyConfig {
+    fn default() -> Self {
+        Self {
+            profiles: vec!["template/base".to_owned(), "template/service".to_owned()],
+            keep_generated: false,
+        }
+    }
+}
+
+impl ProfileVerifyConfig {
+    fn from_args(args: &[String]) -> Result<Self, Box<dyn Error>> {
+        let mut config = Self::default();
+        let mut index = 0;
+        let mut custom_profiles = Vec::new();
+
+        while index < args.len() {
+            match args[index].as_str() {
+                "--profile" => {
+                    custom_profiles.push(required_value(args, index)?.to_owned());
+                    index += 2;
+                }
+                "--keep" => {
+                    config.keep_generated = true;
+                    index += 1;
+                }
+                other => return Err(format!("unknown verify-profiles option: {other}").into()),
+            }
+        }
+
+        if !custom_profiles.is_empty() {
+            config.profiles = custom_profiles;
+        }
+
+        Ok(config)
+    }
+}
+
+fn verify_profiles(config: ProfileVerifyConfig) -> Result<(), Box<dyn Error>> {
+    let root = env::current_dir()?.canonicalize()?;
+    let output_root = env::temp_dir().join("rust-template-profile-verification");
+
+    if output_root.exists() && !config.keep_generated {
+        fs::remove_dir_all(&output_root)?;
+    }
+    fs::create_dir_all(&output_root)?;
+
+    for profile in &config.profiles {
+        verify_profile(&root, &output_root, profile)?;
+    }
+
+    if config.keep_generated {
+        println!(
+            "[INFO] kept generated profiles in {}",
+            output_root.display()
+        );
+    } else if output_root.exists() {
+        fs::remove_dir_all(&output_root)?;
+    }
+
+    Ok(())
+}
+
+fn verify_profile(root: &Path, output_root: &Path, profile: &str) -> Result<(), Box<dyn Error>> {
+    let profile_path = root.join(profile);
+    if !profile_path.is_dir() {
+        return Err(format!("profile does not exist: {}", profile_path.display()).into());
+    }
+
+    let name = profile_name(profile)?;
+    let generated_dir = output_root.join(&name);
+    if generated_dir.exists() {
+        fs::remove_dir_all(&generated_dir)?;
+    }
+
+    println!("[INFO] generating {profile} as {name}");
+    run_command(
+        root,
+        "cargo",
+        &[
+            "generate",
+            "--path",
+            ".",
+            profile,
+            "--name",
+            &name,
+            "--define",
+            "project_description=Generated profile verification project.",
+            "--destination",
+            output_root
+                .to_str()
+                .ok_or("temporary path is not valid UTF-8")?,
+            "--vcs",
+            "none",
+            "--silent",
+        ],
+    )?;
+
+    run_profile_gate(&generated_dir)
+}
+
+fn profile_name(profile: &str) -> Result<String, Box<dyn Error>> {
+    let Some(name) = profile.rsplit('/').next().filter(|name| !name.is_empty()) else {
+        return Err(format!("invalid profile path: {profile}").into());
+    };
+
+    Ok(format!("verify-{name}"))
+}
+
+fn run_profile_gate(generated_dir: &Path) -> Result<(), Box<dyn Error>> {
+    let commands: [(&str, &[&str]); 8] = [
+        ("cargo", &["fmt", "--all", "--check"]),
+        ("cargo", &["check", "--workspace", "--all-targets"]),
+        ("cargo", &["nextest", "run", "--workspace", "--all-targets"]),
+        ("cargo", &["test", "--workspace", "--doc"]),
+        (
+            "cargo",
+            &[
+                "clippy",
+                "--workspace",
+                "--all-targets",
+                "--",
+                "-D",
+                "warnings",
+            ],
+        ),
+        ("cargo", &["deny", "check"]),
+        (
+            "cargo",
+            &["build", "--workspace", "--all-targets", "--release"],
+        ),
+        ("cargo", &["run", "-p", "xtask", "--", "size"]),
+    ];
+
+    for (program, args) in commands {
+        run_command(generated_dir, program, args)?;
+    }
+
+    Ok(())
+}
+
+fn run_command(cwd: &Path, program: &str, args: &[&str]) -> Result<(), Box<dyn Error>> {
+    println!("[INFO] running: {} {}", program, args.join(" "));
+    let status = Command::new(program).args(args).current_dir(cwd).status()?;
+
+    if !status.success() {
+        return Err(format!(
+            "command failed in {}: {} {}",
+            cwd.display(),
+            program,
+            args.join(" ")
+        )
+        .into());
+    }
+
+    Ok(())
 }
 
 #[derive(Debug, Clone)]
@@ -356,7 +522,7 @@ fn update_readme_version(args: &[String]) -> Result<(), Box<dyn Error>> {
     let source = fs::read_to_string(readme)?;
     let updated = source
         .lines()
-        .map(|line| update_template_version_line(line, version))
+        .map(|line| update_readme_version_line(line, version))
         .collect::<Vec<_>>()
         .join("\n");
 
@@ -365,13 +531,19 @@ fn update_readme_version(args: &[String]) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn update_template_version_line(line: &str, version: &str) -> String {
-    if line.trim_start().starts_with("template = \"") {
-        return format!("template = \"{version}\"");
+fn update_readme_version_line(line: &str, version: &str) -> String {
+    let plain_prefix = format!("{README_DEPENDENCY_NAME} = \"");
+    if line.trim_start().starts_with(&plain_prefix) {
+        return format!("{README_DEPENDENCY_NAME} = \"{version}\"");
     }
 
-    if line.contains("template = { version = \"") {
-        return format!("template = {{ version = \"{version}\" }}");
+    let inline_prefix = [README_DEPENDENCY_NAME, " = ", "{", " version = \""].concat();
+    if line.contains(&inline_prefix) {
+        return format!(
+            "{README_DEPENDENCY_NAME} = {open} version = \"{version}\" {close}",
+            open = "{",
+            close = "}"
+        );
     }
 
     line.to_owned()

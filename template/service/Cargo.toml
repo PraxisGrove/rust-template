@@ -1,0 +1,68 @@
+[workspace]
+members = [
+    "crates/app",
+    "crates/cli",
+    "crates/domain",
+    "crates/infra",
+    "crates/xtask",
+]
+resolver = "2"
+
+[workspace.package]
+authors = ["{{authors}}"]
+edition = "2024"
+license = "MIT OR Apache-2.0"
+version = "0.1.0"
+
+[workspace.dependencies]
+anyhow = "1"
+axum = "0.8"
+assert_cmd = "2"
+predicates = "3"
+rstest = "0.26"
+serde = "1"
+serde_json = "1"
+sqlx = { version = "0.8", default-features = false, features = ["runtime-tokio-rustls", "postgres"] }
+thiserror = "2"
+tokio = "1"
+tower = "0.5"
+tracing = "0.1"
+tracing-subscriber = "0.3"
+{{project-name}}-app = { path = "crates/app", version = "0.1.0" }
+{{project-name}}-domain = { path = "crates/domain", version = "0.1.0" }
+{{project-name}}-infra = { path = "crates/infra", version = "0.1.0" }
+
+[workspace.lints]
+rust = {}
+
+[workspace.lints.clippy]
+expect_used = "deny"
+panic = "deny"
+panic_in_result_fn = "deny"
+todo = "deny"
+unimplemented = "deny"
+manual_ok_or = "deny"
+needless_collect = "deny"
+redundant_clone = "deny"
+uninlined_format_args = "deny"
+unwrap_used = "deny"
+
+[profile.dev]
+debug = "limited"
+
+[profile.release]
+codegen-units = 4
+debug = "line-tables-only"
+lto = "thin"
+strip = false
+
+# only works with cargo-release
+[workspace.metadata.release]
+pre-release-replacements = [
+    # Update inline-table dependency snippets like:
+    # {{project-name}} = { version = "0.2", features = ["custom"] }
+    { file = "README.md", search = "{{project-name}}\\s*=\\s*\\{\\s*version\\s*=\\s*\"[0-9]+\\.[0-9]+(\\.[0-9]+)?(-[0-9A-Za-z.-]+)?\"", replace = "{{project-name}} = { version = \"{% raw %}{{version}}{% endraw %}\"" },
+    # Update plain dependency snippets like:
+    # {{project-name}} = "0.2"
+    { file = "README.md", search = "{{project-name}}\\s*=\\s*\"[0-9]+\\.[0-9]+(\\.[0-9]+)?(-[0-9A-Za-z.-]+)?\"", replace = "{{project-name}} = \"{% raw %}{{version}}{% endraw %}\"", min = 0 },
+]

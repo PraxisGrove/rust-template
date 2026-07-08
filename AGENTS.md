@@ -12,14 +12,17 @@ Use standard Cargo commands as the source of truth:
 ```bash
 cargo fmt --all --check
 cargo check --workspace --all-targets
-cargo test --workspace --all-targets
+cargo nextest run --workspace --all-targets
+cargo test --workspace --doc
 cargo clippy --workspace --all-targets -- -D warnings
+cargo deny check
 cargo build --workspace --all-targets --release
 cargo run -p xtask -- size
+cargo run -p xtask -- verify-profiles
 ```
 
-`just`, `prek`, `cargo-nextest`, and release helpers are optional conveniences.
-Do not make them required for the base development path.
+`cargo-nextest` and `cargo-deny` are required for the mature-project gate.
+`just`, `prek`, and release helpers are optional conveniences.
 
 ## Architecture Rules
 

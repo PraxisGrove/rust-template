@@ -18,7 +18,13 @@ check:
     cargo check --workspace --all-targets
 
 test:
-    cargo test --workspace --all-targets
+    cargo nextest run --workspace --all-targets
+
+test-doc:
+    cargo test --workspace --doc
+
+deny:
+    cargo deny check
 
 clippy:
     cargo clippy --workspace --all-targets -- -D warnings
@@ -26,13 +32,19 @@ clippy:
 size:
     cargo run -p xtask -- size
 
+verify-profiles:
+    cargo run -p xtask -- verify-profiles
+
 build:
     cargo build --workspace --all-targets --release
 
 ci:
     cargo fmt --all --check
     cargo check --workspace --all-targets
-    cargo test --workspace --all-targets
+    cargo nextest run --workspace --all-targets
+    cargo test --workspace --doc
     cargo clippy --workspace --all-targets -- -D warnings
+    cargo deny check
     cargo build --workspace --all-targets --release
     cargo run -p xtask -- size
+    cargo run -p xtask -- verify-profiles

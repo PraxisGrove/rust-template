@@ -1,0 +1,8 @@
+[template]
+cargo_generate_version = ">=0.23.0"
+ignore = [
+    "Cargo.lock",
+]
+
+[placeholders]
+project_description = { type = "string", prompt = "Project description", default = "A mature Rust workspace." }

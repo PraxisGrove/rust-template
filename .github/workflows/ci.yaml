@@ -26,6 +26,9 @@ jobs:
       - name: Setup Rust cache
         uses: Swatinem/rust-cache@v2
 
+      - name: Install cargo-nextest
+        uses: taiki-e/install-action@nextest
+
       - name: Format
         run: cargo fmt --all --check
 
@@ -33,13 +36,24 @@ jobs:
         run: cargo check --workspace --all-targets
 
       - name: Test
-        run: cargo test --workspace --all-targets
+        run: cargo nextest run --workspace --all-targets --profile ci
+
+      - name: Doc tests
+        run: cargo test --workspace --doc
 
       - name: Clippy
         run: cargo clippy --workspace --all-targets -- -D warnings
+
+      - name: Dependency policy
+        uses: EmbarkStudios/cargo-deny-action@v2
+        with:
+          command: check
 
       - name: Build
         run: cargo build --workspace --all-targets --release
 
       - name: Size gate
         run: cargo run -p xtask -- size
+
+      - name: Profile gate
+        run: cargo run -p xtask -- verify-profiles

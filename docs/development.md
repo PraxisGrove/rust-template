@@ -1,7 +1,8 @@
 # Development
 
-The base workflow uses the standard Rust toolchain. Optional tools can improve
-local ergonomics, but the template must remain usable without them.
+The base workflow uses Cargo plus `cargo-nextest` and `cargo-deny`. Optional
+tools can improve local ergonomics, but the mature-project gate should stay
+explicit and reproducible.
 
 ## Required Gates
 
@@ -10,10 +11,13 @@ Run these before handing off a change:
 ```bash
 cargo fmt --all --check
 cargo check --workspace --all-targets
-cargo test --workspace --all-targets
+cargo nextest run --workspace --all-targets
+cargo test --workspace --doc
 cargo clippy --workspace --all-targets -- -D warnings
+cargo deny check
 cargo build --workspace --all-targets --release
 cargo run -p xtask -- size
+cargo run -p xtask -- verify-profiles
 ```
 
 Use `cargo fmt --all` when you want to apply formatting.
@@ -25,8 +29,11 @@ If `just` is installed, the `justfile` provides shortcuts for the same commands:
 ```bash
 just ci
 just test
+just test-doc
 just clippy
+just deny
 just size
+just verify-profiles
 ```
 
 Do not document `just` as a required setup step. CI should use Cargo directly.

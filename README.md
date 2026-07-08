@@ -1,8 +1,8 @@
 # Rust Template
 
 A Rust workspace template optimized for human and AI-assisted development:
-clear crate boundaries, standard Cargo gates, small public APIs, and explicit
-contributor instructions.
+clear crate boundaries, mature Rust quality gates, small public APIs, and
+explicit contributor instructions.
 
 This is not an AI application framework. It is a general Rust template designed
 to keep projects easy for humans and coding agents to understand, modify,
@@ -31,19 +31,60 @@ describe required capabilities near the use cases that consume them.
 
 ## Tooling Policy
 
-The required development path uses the standard Rust toolchain only:
+The required development path uses Cargo plus the mature-project gate tools
+`cargo-nextest` and `cargo-deny`:
 
 ```bash
 cargo fmt
 cargo check
-cargo test
+cargo nextest run
+cargo test --doc
 cargo clippy
+cargo deny check
 cargo build
 ```
 
-Extra tools such as `just`, `prek`, `cargo-nextest`, `cargo-deny`, or release
-helpers are optional. They can improve local workflow, but this template must
-stay usable without installing them.
+Extra tools such as `just`, `prek`, or release helpers are optional. They can
+improve local workflow, but CI and handoff verification should use the required
+gate below.
+
+## Generate A Project
+
+Install `cargo-generate`:
+
+```bash
+cargo install cargo-generate
+```
+
+Generate a base Rust workspace:
+
+```bash
+cargo generate --git https://github.com/PraxisGrove/rust-template template/base --name my-project
+```
+
+Generate a backend service workspace:
+
+```bash
+cargo generate --git https://github.com/PraxisGrove/rust-template template/service --name my-service
+```
+
+For local template development:
+
+```bash
+cargo generate --path . template/base --name my-project
+cargo generate --path . template/service --name my-service
+```
+
+The generated project rewrites package names, Rust crate imports, binary names,
+and README content from the selected project name. For example, `my-project`
+generates crates named `my-project-domain`, `my-project-app`,
+`my-project-infra`, and `my-project-cli`.
+
+Profiles:
+
+- `template/base`: general mature Rust workspace.
+- `template/service`: backend service with `tokio`, `axum`, `sqlx`,
+  PostgreSQL readiness checks, and `tracing`.
 
 ## Development
 
@@ -52,10 +93,13 @@ Run the full local gate with Cargo:
 ```bash
 cargo fmt --all --check
 cargo check --workspace --all-targets
-cargo test --workspace --all-targets
+cargo nextest run --workspace --all-targets
+cargo test --workspace --doc
 cargo clippy --workspace --all-targets -- -D warnings
+cargo deny check
 cargo build --workspace --all-targets --release
 cargo run -p xtask -- size
+cargo run -p xtask -- verify-profiles
 ```
 
 When you want Cargo to format the code:
@@ -112,25 +156,29 @@ behavior.
 ## Optional `just` Shortcuts
 
 `just` is not required. If it is installed, the included `justfile` provides
-short aliases for the same Cargo commands:
+short aliases for the required gate commands:
 
 ```bash
 just ci
 just test
+just test-doc
 just clippy
+just deny
 just size
+just verify-profiles
 just fmt-fix
 ```
 
-CI and project documentation should continue to use Cargo commands directly so
-new users do not need extra tools before the project builds.
+CI and project documentation should continue to spell out the underlying
+commands so the required gates remain explicit.
 
 ## Tests
 
-Keep fast Rust tests in the workspace:
+Run fast Rust tests with nextest:
 
 ```bash
-cargo test --workspace --all-targets
+cargo nextest run --workspace --all-targets
+cargo test --workspace --doc
 ```
 
 Add end-to-end tests only when the project needs them. Keep the base template
