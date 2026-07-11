@@ -1,14 +1,13 @@
-# Size Gates
+# Size Guidance
 
-Size gates keep files and functions small enough for humans and coding agents to
-review safely.
+Size checks flag files and functions that deserve a cohesion and control-flow
+review. They do not prove that code should be split.
 
 ## Defaults
 
 - File warning: over 600 lines.
-- File error: over 800 lines.
-- Function warning: over 80 body lines.
-- Function error: over 150 body lines.
+- Function warning: over 150 lines, reported by Clippy's syntax-aware
+  `too_many_lines` lint.
 
 ## Command
 
@@ -16,12 +15,11 @@ review safely.
 cargo run -p xtask -- size
 ```
 
-Use the defaults unless the project has a documented reason to adjust limits.
+The xtask command reports file warnings and exits successfully. Configure the
+function threshold in `clippy.toml`.
 
 ## Notes
 
-Function detection is intentionally approximate. It is designed to find large
-functions early, not to parse every Rust construct perfectly.
-
-Warnings should trigger a split plan. Errors should block new work unless there
-is a documented short-term exception.
+Warnings should prompt a review. Split only when the result is more cohesive or
+requires less context to understand; long state machines and similarly linear,
+cohesive code may be clearer when kept together.

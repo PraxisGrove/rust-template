@@ -9,7 +9,8 @@ Cargo commands are the source of truth.
 - `fmt-fix`: `cargo fmt --all`
 - `check`: `cargo check --workspace --all-targets`
 - `test`: `cargo test --workspace --all-targets`
-- `clippy`: `cargo clippy --workspace --all-targets -- -D warnings`
+- `clippy`: runs strict Clippy with `too_many_lines` allowed, then runs that
+  lint separately as a warning.
 - `build`: `cargo build --workspace --all-targets --release`
 - `size`: `cargo run -p xtask -- size`
 - `ci`: run all gates

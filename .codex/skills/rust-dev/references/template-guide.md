@@ -16,7 +16,7 @@ for humans and AI coding agents to maintain.
 - Workspace metadata and dependency centralization.
 - Workspace lints.
 - Cargo-based CI.
-- Rust-only xtask size gates.
+- Rust-only file size guidance and Clippy function-length warnings.
 - Architecture, development, testing, and review docs.
 
 ## What To Treat As Optional

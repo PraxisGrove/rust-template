@@ -34,7 +34,8 @@ AI coding agents. Keep guidance concise, verifiable, and traceable.
    cargo fmt --all --check
    cargo check --workspace --all-targets
    cargo test --workspace --all-targets
-   cargo clippy --workspace --all-targets -- -D warnings
+   cargo clippy --workspace --all-targets -- -D warnings -A clippy::too_many_lines
+   cargo clippy --workspace --all-targets -- -W clippy::too_many_lines
    cargo build --workspace --all-targets --release
    cargo run -p xtask -- size
    ```

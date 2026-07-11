@@ -71,7 +71,8 @@ cargo fmt --all --check
 cargo check --workspace --all-targets
 cargo nextest run --workspace --all-targets
 cargo test --workspace --doc
-cargo clippy --workspace --all-targets -- -D warnings
+cargo clippy --workspace --all-targets -- -D warnings -A clippy::too_many_lines
+cargo clippy --workspace --all-targets -- -W clippy::too_many_lines
 cargo deny check
 cargo build --workspace --all-targets --release
 cargo run -p xtask -- size

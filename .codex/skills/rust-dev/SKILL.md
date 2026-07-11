@@ -2,7 +2,7 @@
 name: rust-project-dev
 description: |
   Rust project engineering skill: workspace structure, multi-crate layering,
-  Cargo quality gates, Rust xtask size gates, performance discipline, and intentional
+  Cargo quality gates, Rust xtask size guidance, performance discipline, and intentional
   refactoring for maintainable Rust projects.
 ---
 
@@ -15,7 +15,7 @@ Use this skill when you need to:
 - Create or refactor a Rust workspace.
 - Split a project into focused crates with clear dependency direction.
 - Establish mandatory quality gates.
-- Add file/function size gates.
+- Add syntax-aware function and file size guidance.
 - Improve performance with measurement instead of guesswork.
 - Refactor code without preserving unnecessary compatibility layers.
 - Align tests with the `rust-testing` skill.
@@ -28,7 +28,7 @@ Use this skill when you need to:
 - Keep public APIs small and intentional.
 - Prefer fail-fast validation with explicit errors over production assertions or
   panics.
-- Run `fmt`, `check`, `test`, `clippy -D warnings`, `build`, and size gates.
+- Run `fmt`, `check`, `test`, `clippy -D warnings`, `build`, and size checks.
 - Prefer small, reviewable changes over large ambiguous diffs.
 
 ## Required Gates
@@ -39,7 +39,8 @@ Run these from the workspace root:
 cargo fmt --all --check
 cargo check --workspace --all-targets
 cargo test --workspace --all-targets
-cargo clippy --workspace --all-targets -- -D warnings
+cargo clippy --workspace --all-targets -- -D warnings -A clippy::too_many_lines
+cargo clippy --workspace --all-targets -- -W clippy::too_many_lines
 cargo build --workspace --all-targets --release
 cargo run -p xtask -- size
 ```
@@ -109,16 +110,14 @@ Refactor in coherent stages:
 4. Delete the old path once migration is complete.
 5. Run all gates.
 
-## Size Gates
+## Size Guidance
 
 - Target Rust files under 500 lines, excluding tests.
-- Warn over 600 file lines.
-- Fail over 800 file lines.
-- Warn over 80 function body lines.
-- Fail over 150 function body lines.
+- The xtask size command warns over 600 file lines without failing.
+- Clippy warns over 150 function lines using parsed Rust syntax.
 
-The Rust xtask size gate is approximate. It exists to catch large AI-generated
-changes early, not to replace review.
+Use either warning to review cohesion and control flow. Split code only when the
+result reduces the context needed to understand and change it.
 
 ## Performance Policy
 

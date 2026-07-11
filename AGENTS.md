@@ -14,7 +14,8 @@ cargo fmt --all --check
 cargo check --workspace --all-targets
 cargo nextest run --workspace --all-targets
 cargo test --workspace --doc
-cargo clippy --workspace --all-targets -- -D warnings
+cargo clippy --workspace --all-targets -- -D warnings -A clippy::too_many_lines
+cargo clippy --workspace --all-targets -- -W clippy::too_many_lines
 cargo deny check
 cargo build --workspace --all-targets --release
 cargo run -p xtask -- size
@@ -56,10 +57,11 @@ cargo run -p xtask -- size
 ## Size Limits
 
 - Target Rust source files under 500 lines, excluding tests.
-- Files over 600 lines are warnings and should have a split plan.
-- Files over 800 lines should be split before adding more behavior.
-- Functions over 80 lines are warnings.
-- Functions over 150 lines should be split unless there is a documented reason.
+- `cargo run -p xtask -- size` warns about files over 600 lines but does not
+  fail the build.
+- Clippy warns about functions over 150 lines using the parsed Rust structure.
+- Treat either warning as a prompt to review cohesion and control flow. Split
+  only when doing so reduces the context needed to understand a change.
 
 ## Testing Rules
 

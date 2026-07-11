@@ -38,7 +38,8 @@ Use this skill when you need to:
    ```bash
    cargo fmt --all --check
    cargo test --workspace --all-targets
-   cargo clippy --workspace --all-targets -- -D warnings
+   cargo clippy --workspace --all-targets -- -D warnings -A clippy::too_many_lines
+   cargo clippy --workspace --all-targets -- -W clippy::too_many_lines
    ```
 
 ## Test Levels

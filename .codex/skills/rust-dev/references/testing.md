@@ -28,5 +28,6 @@ dedicated test module or test-support crate when duplication becomes meaningful.
 
 ```bash
 cargo test --workspace --all-targets
-cargo clippy --workspace --all-targets -- -D warnings
+cargo clippy --workspace --all-targets -- -D warnings -A clippy::too_many_lines
+cargo clippy --workspace --all-targets -- -W clippy::too_many_lines
 ```

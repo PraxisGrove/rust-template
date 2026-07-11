@@ -13,7 +13,8 @@ cargo fmt --all --check
 cargo check --workspace --all-targets
 cargo nextest run --workspace --all-targets
 cargo test --workspace --doc
-cargo clippy --workspace --all-targets -- -D warnings
+cargo clippy --workspace --all-targets -- -D warnings -A clippy::too_many_lines
+cargo clippy --workspace --all-targets -- -W clippy::too_many_lines
 cargo deny check
 cargo build --workspace --all-targets --release
 cargo run -p xtask -- size
@@ -45,11 +46,12 @@ When adding a dependency, include the reason in the change description. Prefer
 small, maintained crates with a clear API and avoid broad feature sets unless
 the project needs them.
 
-## Size Gate
+## Size Guidance
 
-The size gate is intentionally approximate. Its job is to catch large files and
-large functions early, especially during AI-assisted development where changes
-can grow quickly.
+The xtask size command warns when Rust files exceed 600 lines. It reports file
+length only and never fails because of size. Function length is checked by
+Clippy's syntax-aware `too_many_lines` lint with a 150-line threshold.
 
-Warnings should trigger a split plan. Errors should block the change unless
-there is a documented reason and a short-term migration plan.
+Size warnings should trigger a review of cohesion and control flow, not an
+automatic split. A split is useful only when it reduces the context needed to
+understand and change the code.

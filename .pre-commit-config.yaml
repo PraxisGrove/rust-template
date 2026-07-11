@@ -44,7 +44,14 @@ repos:
     hooks:
       - id: clippy
         name: clippy
-        entry: cargo clippy --workspace --all-targets -- -D warnings
+        entry: cargo clippy --workspace --all-targets -- -D warnings -A clippy::too_many_lines
+        language: system
+        types: [rust]
+        pass_filenames: false
+
+      - id: clippy-function-size
+        name: clippy function size guidance
+        entry: cargo clippy --workspace --all-targets -- -W clippy::too_many_lines
         language: system
         types: [rust]
         pass_filenames: false

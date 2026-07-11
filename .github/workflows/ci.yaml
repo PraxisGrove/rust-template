@@ -42,7 +42,10 @@ jobs:
         run: cargo test --workspace --doc
 
       - name: Clippy
-        run: cargo clippy --workspace --all-targets -- -D warnings
+        run: cargo clippy --workspace --all-targets -- -D warnings -A clippy::too_many_lines
+
+      - name: Check function size guidance
+        run: cargo clippy --workspace --all-targets -- -W clippy::too_many_lines
 
       - name: Dependency policy
         uses: EmbarkStudios/cargo-deny-action@v2
@@ -52,5 +55,5 @@ jobs:
       - name: Build
         run: cargo build --workspace --all-targets --release
 
-      - name: Size gate
+      - name: Check file size guidance
         run: cargo run -p xtask -- size
