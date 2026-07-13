@@ -23,6 +23,9 @@ the project needs them, but keep the verification toolchain strong by default.
 | Async runtime | `tokio` |
 | HTTP client | `reqwest` |
 | HTTP server | `axum` |
+| Native desktop UI | `slint` |
+| Web full-stack UI | `leptos` |
+| Cross-platform UI | `dioxus` |
 | gRPC | `tonic` |
 | SQL | `sqlx` |
 | ORM | Prefer no ORM; use `sea-orm` only when the project needs an entity model. |
@@ -36,16 +39,15 @@ the project needs them, but keep the verification toolchain strong by default.
 
 ## Default Application Stacks
 
-Use these defaults when evolving this template into a concrete product. Do not
-add all of them to the base workspace.
+Use one of these stacks when evolving this template. Do not add all four stacks
+to the shared base workspace.
 
-| Application type | Default stack |
+| Variant | Default stack |
 |---|---|
-| Server-only service | `tokio`, `axum`, `tower`, `tower-http`, `serde`, `thiserror`, `anyhow`, `tracing`, `tracing-subscriber`, `opentelemetry`, `opentelemetry-otlp`, `sqlx`, PostgreSQL |
-| Server plus full-stack frontend | Server-only stack plus `leptos` for the Rust full-stack web boundary |
-| Desktop-only app | `tauri` as the desktop shell, Rust command handlers, local adapters in `infra`, and optional SQLite through `sqlx` |
-| Server plus desktop client | Server-only stack plus a `tauri` desktop client; share API contracts through a dedicated crate |
-| CLI/TUI app | `clap`, `anyhow`, `thiserror`, `tracing`, optional `ratatui` and `crossterm` for terminal UI |
+| Backend service | Rust 2024, `tokio`, `axum`, `tower`, `tower-http`, `reqwest`, `serde`, `thiserror`, `anyhow`, `tracing`, `tracing-subscriber`, `opentelemetry`, `opentelemetry-otlp`, `sqlx`, and PostgreSQL |
+| Native desktop application | Rust 2024, `slint`, `tokio`, `cpal`, `reqwest`, `serde`, `thiserror`, `anyhow`, `tracing`, SQLite with `rusqlite`, Cargo, and `xtask` |
+| Web full-stack application | Rust 2024, `leptos`, `tokio`, `axum`, `tower`, `tower-http`, `reqwest`, `serde`, `thiserror`, `anyhow`, `tracing`, `sqlx`, PostgreSQL, Cargo, and `cargo-leptos` |
+| Cross-platform full-stack application | Rust 2024, `dioxus`, `tokio`, `axum`, `reqwest`, `serde`, `thiserror`, `anyhow`, `tracing`, `sqlx`, PostgreSQL, optional SQLite with `rusqlite`, Cargo, `dx`, and `xtask` |
 
 ## Server Stack
 
@@ -63,78 +65,74 @@ Choose this for APIs, workers with HTTP control planes, and backend services.
 
 Keep `domain` free of `tokio`, HTTP, SQL, filesystem, and process concerns.
 Put request handlers, runtime wiring, and shutdown behavior at the binary
-boundary.
-
-## Full-Stack Web Stack
-
-Choose this when the frontend should also be Rust.
-
-- Web framework: `leptos`.
-- Server integration: mount Leptos on the `axum` server boundary.
-- Shared types: keep request/response DTOs in a dedicated crate only when they
-  are used by both client and server.
-- Styling: add the CSS/tooling stack only when the UI work starts.
-
-Do not introduce a separate JavaScript full-stack framework by default. If a
-project intentionally chooses React/Next.js, document that as a project-specific
-override.
+boundary. Tokio and Axum are defaults selected for the expected I/O-heavy
+workload; they are not domain dependencies and may be replaced when measured
+requirements justify a different runtime or HTTP framework.
 
 ## Desktop Stack
 
-Choose this for installed desktop apps.
+Choose this for the installed macOS and Windows application.
 
-- Desktop shell: `tauri`.
-- UI: use Tauri's web frontend boundary; choose the frontend framework per
-  product UI needs.
-- Rust side: expose small commands that call into `app` use cases.
-- Local persistence: SQLite through `sqlx` when persistence is needed.
-- Packaging: keep platform signing, notarization, and installer work in
-  project-specific docs once the app has a release target.
+- Language and edition: Rust 2024.
+- UI: `slint`; `.slint` declaration files are part of the native Rust UI build.
+- Async runtime: `tokio` for background tasks. Keep the Slint event loop on the
+  UI thread and send results back through explicit messages.
+- Audio capture: `cpal`. Audio callbacks must only enqueue frames and must not
+  perform network or database work.
+- HTTP client: `reqwest` for ASR, LLM, and backend requests.
+- Local persistence: SQLite through `rusqlite`, owned by a dedicated adapter or
+  worker rather than the audio callback.
+- Errors and diagnostics: `thiserror` in libraries, `anyhow` at the desktop
+  entrypoint, and `tracing` for runtime diagnostics.
+- Build and packaging: Cargo plus `xtask`, with platform-specific signing,
+  notarization, installers, and microphone permission metadata documented on
+  the desktop branch.
 
-Avoid putting desktop framework types in `domain` or `app`. Keep them in the
-desktop entrypoint crate.
+Do not add Tauri, React, TypeScript, Vite, Node.js, or a WebView. Keep Slint,
+Tokio, cpal, reqwest, and rusqlite types out of `domain`; put concrete adapters
+in `infra` and UI/runtime wiring in a desktop entrypoint crate.
 
-## Server Plus Desktop Stack
+## Web Full-Stack Stack
 
-Choose this when the product has both hosted services and an installed client.
+Choose this for a browser-first product.
 
-- Server: use the server-only stack.
-- Desktop: use the desktop stack.
-- Contract: define API DTOs and client behavior explicitly; do not let the
-  desktop app depend on server internals.
-- Authentication and update channels are project-specific and must be
-  documented when selected.
+- UI, routing, SSR, and hydration: `leptos`.
+- HTTP and runtime: `axum` on `tokio`, with `tower`/`tower-http` middleware.
+- Data: PostgreSQL with `sqlx` and `sqlx migrate`.
+- Build: Cargo, `cargo-leptos`, and project automation in `xtask`.
+- Styling: standards-based CSS without a required Node.js toolchain.
+- Boundaries: keep Leptos components in a web crate and Axum wiring in a server
+  crate. Share DTOs only when both sides genuinely use the same contract.
 
-## CLI/TUI Stack
+The browser output includes HTML, CSS, WebAssembly, and generated browser glue,
+but application code and build automation remain in Rust. Do not require React,
+TypeScript, Vite, or Node.js.
 
-Choose this for command-line tools, developer tools, automation CLIs, and
-terminal user interfaces.
+## Cross-Platform Full-Stack Stack
 
-- Argument parsing: `clap`.
-- Errors: `anyhow` at the binary boundary, `thiserror` in reusable library
-  crates.
-- Output: write human-readable output by default; add `serde_json` output only
-  when scripts or integrations need stable machine-readable output.
-- Logging: `tracing` with an env filter for diagnostics; keep normal command
-  output separate from logs.
-- TUI: `ratatui` with `crossterm` when the app needs an interactive terminal
-  interface.
-- Testing: use `assert_cmd` and `predicates` for CLI behavior; keep TUI state
-  transitions testable without a terminal.
+Choose this when one component model should cover web, Windows, macOS, Linux,
+iOS, and Android.
 
-Keep parsing and process exit behavior in `cli`. Move reusable command logic
-into `app` so it can be tested without spawning the binary.
+- Shared UI, routing, SSR, hydration, and server functions: `dioxus`.
+- Runtime and hosted HTTP boundary: `tokio` and `axum`.
+- Remote data: PostgreSQL with `sqlx`; local client data may use SQLite through
+  `rusqlite` when offline behavior requires it.
+- Client HTTP: `reqwest` behind an app port when direct requests are needed.
+- Build: Cargo, the Dioxus CLI (`dx`), and project automation in `xtask`.
+- Platform capabilities: define ports for storage, microphone, notifications,
+  deep links, and secure credentials, then implement platform adapters.
 
-## Web Framework Guidance
+Dioxus maximizes UI reuse but uses platform WebViews for its conventional
+desktop targets. Mobile builds also require Xcode or the Android SDK/NDK. Pick
+the native desktop variant instead when avoiding WebViews is a hard constraint.
+Do not promise complete code reuse: platform permissions, packaging, signing,
+and device integrations remain target-specific.
 
-Prefer `axum` for new HTTP services. It fits the Tokio/Tower ecosystem, keeps
-handlers explicit, and composes well with middleware.
+## Backend Framework Policy
 
-Use `actix-web` when the team specifically wants Actix's model or has a strong
-performance/operational reason.
+Use `axum` for backend HTTP services. It fits the Tokio/Tower ecosystem, keeps
+handlers explicit, and composes with `tower` middleware.
 
-Use `rocket` when a project values a more batteries-included web framework and
-the tradeoff is intentional.
-
-Do not add a web framework to the base template. Add it only to a project or a
-separate template variant that actually serves HTTP.
+Do not add an HTTP server framework to the base template. Add `axum` only to a
+variant that hosts HTTP services. Native clients may use `reqwest` without
+depending on the backend implementation.

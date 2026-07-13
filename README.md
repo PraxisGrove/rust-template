@@ -53,14 +53,20 @@ gate below.
 This repository is the template. It does not maintain a separate `template/`
 copy of itself.
 
-The current base is a dependency-light Rust workspace. When a project needs a
-specific application shape, evolve this workspace directly toward one of the
-documented application types:
+The current base is a dependency-light Rust workspace. Evolve it into one of
+the four documented Rust-only variants:
 
-- server plus full-stack frontend
-- server plus desktop client
-- desktop-only app
-- server-only service
+- backend service
+- native desktop application
+- web full-stack application
+- cross-platform full-stack application
+
+The native desktop variant uses Slint without a WebView. The web variant uses
+Leptos, and the cross-platform variant uses Dioxus to share UI code across web,
+desktop, and mobile targets. None of the variants requires a Node.js or
+TypeScript application toolchain. See `docs/application-types.md` and
+`docs/technology-stack.md` for their stacks, rendering tradeoffs, and
+dependency boundaries.
 
 ## Development
 
